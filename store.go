@@ -1,26 +1,40 @@
 package main
 
-type InMemoryPlayerStore struct {
-	store map[string]int
+import (
+	"encoding/json"
+	"io"
+)
+
+type FileSystemPlayerStore struct {
+	database io.ReadWriteSeeker
 }
 
-func NewInMemoryStore() *InMemoryPlayerStore {
-	return &InMemoryPlayerStore{map[string]int{}}
-}
-
-func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
-	return i.store[name]
-}
-
-func (i *InMemoryPlayerStore) RecordWin(name string) {
-	i.store[name]++
-}
-
-func (i *InMemoryPlayerStore) GetLeague() []Player {
-	var league []Player
-
-	for name, wins := range i.store {
-		league = append(league, Player{name, wins})
-	}
+func (f *FileSystemPlayerStore) GetLeague() League {
+	f.database.Seek(0, 0)
+	league, _ := NewLeague(f.database)
 	return league
+}
+
+func (f *FileSystemPlayerStore) GetPlayerScore(name string) int {
+	player := f.GetLeague().Find(name)
+
+	if player != nil {
+		return player.Wins
+	}
+
+	return 0
+}
+
+func (f *FileSystemPlayerStore) RecordWin(name string) {
+	league := f.GetLeague()
+	player := league.Find(name)
+
+	if player != nil {
+		player.Wins++
+	} else {
+		league = append(league, Player{name, 1})
+	}
+
+	f.database.Seek(0, 0)
+	json.NewEncoder(f.database).Encode(league)
 }

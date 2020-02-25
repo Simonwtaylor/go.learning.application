@@ -15,21 +15,21 @@ type Player struct {
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
-	GetLeague() []Player
+	GetLeague() League
 }
 
 type PlayerServer struct {
-	store PlayerStore
+	store FileSystemPlayerStore
 	http.Handler
 }
 
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
-	league   []Player
+	league   League
 }
 
-func NewPlayerServer(store PlayerStore) *PlayerServer {
+func NewPlayerServer(store FileSystemPlayerStore) *PlayerServer {
 
 	p := new(PlayerServer)
 
