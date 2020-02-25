@@ -19,17 +19,11 @@ type PlayerStore interface {
 }
 
 type PlayerServer struct {
-	store FileSystemPlayerStore
+	store PlayerStore
 	http.Handler
 }
 
-type StubPlayerStore struct {
-	scores   map[string]int
-	winCalls []string
-	league   League
-}
-
-func NewPlayerServer(store FileSystemPlayerStore) *PlayerServer {
+func NewPlayerServer(store PlayerStore) *PlayerServer {
 
 	p := new(PlayerServer)
 
@@ -81,18 +75,4 @@ func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
 func (p *PlayerServer) processWin(w http.ResponseWriter, player string) {
 	p.store.RecordWin(player)
 	w.WriteHeader(http.StatusAccepted)
-}
-
-func (s *StubPlayerStore) GetPlayerScore(name string) int {
-	score := s.scores[name]
-
-	return score
-}
-
-func (s *StubPlayerStore) RecordWin(name string) {
-	s.winCalls = append(s.winCalls, name)
-}
-
-func (s *StubPlayerStore) GetLeague() []Player {
-	return s.league
 }
