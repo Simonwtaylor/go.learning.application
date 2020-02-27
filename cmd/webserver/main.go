@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"go.learning.application/poker"
 )
@@ -11,17 +11,14 @@ import (
 const dbFileName = "game.db.json"
 
 func main() {
-	db, err := os.OpenFile(dbFileName, os.O_RDWR|os.O_CREATE, 0666)
+	store, close, err := poker.FileSystemPlayerStoreFromFile(dbFileName)
 
 	if err != nil {
-		log.Fatalf("problem opening %s %v", dbFileName, err)
+		log.Fatal(err)
 	}
-
-	store, err := poker.NewFileSystemPlayerStore(db)
-
-	if err != nil {
-		log.Fatalf("problem creating store %v", err)
-	}
+	defer close()
+	fmt.Println("Let's play poker")
+	fmt.Println("Type {Name} wins to record a win")
 
 	server := poker.NewPlayerServer(store)
 
